@@ -1,356 +1,678 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Exatec • Simulador Educacional</title>
-
-<style>
-:root{
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --primary:#f5b700;
-  --accent:#e85d04;
-  --dark:#1f2937;
-  --muted:#6b7280;
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Inter,system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--dark);
-  padding:24px;
-}
-
-/* ===== LAYOUT ===== */
-.app{
-  max-width:1400px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:320px 1fr;
-  gap:24px;
-}
-
-/* ===== CARDS ===== */
-.card{
-  background:var(--card);
-  border-radius:16px;
-  padding:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,.08);
-}
-
-/* ===== CONTROLES ===== */
-h1{margin:0 0 6px;font-size:22px}
-.subtitle{color:var(--muted);font-size:14px;margin-bottom:16px}
-
-label{
-  font-size:13px;
-  margin-top:12px;
-  display:block;
-}
-
-input[type=range],input[type=number]{
-  width:100%;
-}
-
-.value{
-  color:var(--accent);
-  font-weight:600;
-}
-
-button{
-  margin-top:14px;
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:var(--accent);
-  color:#fff;
-  font-size:15px;
-  cursor:pointer;
-}
-
-button.secondary{
-  background:#d1d5db;
-  color:#111;
-}
-
-/* ===== MAIN ===== */
-.main{
-  display:grid;
-  grid-template-columns:1fr 380px;
-  grid-template-rows:auto 1fr;
-  gap:20px;
-}
-
-/* ===== CANVAS ===== */
-canvas{
-  width:100%;
-  border-radius:14px;
-}
-
-/* ===== METRICS ===== */
-.metrics{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  margin-top:12px;
-}
-
-.metric{
-  background:#f9fafb;
-  border-radius:12px;
-  padding:10px;
-  text-align:center;
-  font-size:13px;
-}
-
-.metric strong{
-  display:block;
-  color:var(--primary);
-  font-size:16px;
-}
-
-/* ===== PEDAGOGICAL BOX ===== */
-.formula-box{
-  background:linear-gradient(180deg,#ffffff,#f9fafb);
-  border-radius:16px;
-  padding:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,.06);
-}
-
-.formula{
-  font-size:22px;
-  font-weight:700;
-  text-align:center;
-  margin:14px 0;
-  color:var(--accent);
-}
-
-.formula-box p{
-  font-size:14px;
-  color:var(--muted);
-}
-
-.formula-input{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
-
-.formula-input label{
-  font-size:12px;
-}
-
-small{
-  color:var(--muted);
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exatec - Newton's Second Law Simulator</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #52616b;
+      --primary: #f7c948;
+      --secondary: #f08c42;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr 380px;
+      grid-template-rows: 440px auto;
+      gap: 18px;
+      padding: 18px;
+    }
+    h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid var(--border);
+    }
+    .sidebar {
+      grid-row: 1 / span 2;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .badge {
+      background: rgba(247, 201, 72, 0.18);
+      color: var(--secondary);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 600;
+      font-size: 12px;
+      width: fit-content;
+    }
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .control label {
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+    }
+    .control input[type="range"] {
+      width: 100%;
+      accent-color: var(--secondary);
+    }
+    .control .value {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    button {
+      border: none;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.12s ease;
+    }
+    button:active { transform: translateY(1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #1f1f1f;
+      box-shadow: 0 8px 18px rgba(240, 140, 66, 0.25);
+    }
+    .btn-ghost {
+      background: #f9fafb;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .sim-card {
+      grid-column: 2;
+      grid-row: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    #simCanvas {
+      width: 100%;
+      height: 320px;
+      background: linear-gradient(180deg, #fdfdfd 0%, #f6f7f9 60%, #e4e7ec 100%);
+      border-radius: var(--radius);
+    }
+    .ground {
+      position: absolute;
+      bottom: 60px;
+      left: 18px;
+      right: 18px;
+      height: 6px;
+      background: linear-gradient(90deg, rgba(240,140,66,0.4), rgba(247,201,72,0.8));
+      border-radius: 999px;
+    }
+    .theory {
+      grid-column: 3;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .theory p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .formula {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--secondary);
+      letter-spacing: -0.02em;
+    }
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .field input {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fbfbfb;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(240, 140, 66, 0.18);
+    }
+    .results {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .metric-card {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fffdf7;
+    }
+    .metric-card strong { font-size: 14px; color: var(--muted); }
+    .metric-card .big {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 6px;
+    }
+    .footer {
+      grid-column: 2 / 4;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat-card {
+      background: #fffefc;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    .stat-label { color: var(--muted); font-size: 13px; font-weight: 700; }
+    .stat-value { font-size: 20px; font-weight: 800; margin-top: 6px; }
+    .gauge, .chart {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+    canvas { display: block; }
+    .challenge {
+      grid-column: span 3;
+      background: linear-gradient(135deg, rgba(247,201,72,0.8), rgba(240,140,66,0.8));
+      border-radius: var(--radius);
+      padding: 14px;
+      color: #1f1f1f;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(0,0,0,0.04);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+    .challenge .progress {
+      flex: 1;
+      height: 10px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .challenge .progress span {
+      display: block;
+      height: 100%;
+      background: #fff;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+    @media (max-width: 1200px) {
+      body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .sidebar, .sim-card, .theory, .footer { grid-column: 1; grid-row: auto; }
+      .footer { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="app">
-
-<!-- ===== CONTROLES ===== -->
-<div class="card">
-  <h1>Lei de Newton</h1>
-  <p class="subtitle">Simulação com abordagem pedagógica</p>
-
-  <label>Massa (kg): <span class="value" id="massVal">5</span></label>
-  <input type="range" min="1" max="20" value="5" id="mass">
-
-  <label>Força Aplicada (N): <span class="value" id="forceVal">20</span></label>
-  <input type="range" min="0" max="50" value="20" id="force">
-
-  <label>Atrito (μ): <span class="value" id="frictionVal">0.2</span></label>
-  <input type="range" min="0" max="1" step="0.05" value="0.2" id="friction">
-
-  <button id="start">Iniciar</button>
-  <button class="secondary" id="reset">Resetar</button>
-</div>
-
-<!-- ===== MAIN ===== -->
-<div class="main">
-
-  <!-- SIMULADOR -->
-  <div class="card">
-    <canvas id="scene" width="820" height="360"></canvas>
-
-    <div class="metrics">
-      <div class="metric"><strong id="acc">0</strong>Aceleração</div>
-      <div class="metric"><strong id="vel">0</strong>Velocidade</div>
-      <div class="metric"><strong id="net">0</strong>Força Result.</div>
-      <div class="metric">🎯 <strong id="status">10 m/s</strong>Desafio</div>
+  <aside class="sidebar card">
+    <div class="header">
+      <span class="badge">Exatec · Física</span>
+      <h1>Lei de Newton · Força = m · a</h1>
+      <p style="margin:0;color:var(--muted);">Ajuste os parâmetros e observe como força, massa e atrito alteram o movimento.</p>
     </div>
+    <div class="control">
+      <label>Massa (kg) <span class="value" id="massValue">1000</span></label>
+      <input type="range" id="massSlider" min="50" max="5000" step="10" value="1000">
+    </div>
+    <div class="control">
+      <label>Força aplicada (N) <span class="value" id="forceValue">1500</span></label>
+      <input type="range" id="forceSlider" min="0" max="5000" step="50" value="1500">
+    </div>
+    <div class="control">
+      <label>Coeficiente de atrito (μ) <span class="value" id="frictionValue">0.20</span></label>
+      <input type="range" id="frictionSlider" min="0" max="1" step="0.01" value="0.2">
+    </div>
+    <div class="buttons">
+      <button class="btn-primary" id="startBtn">Iniciar</button>
+      <button class="btn-ghost" id="resetBtn">Resetar</button>
+    </div>
+  </aside>
 
-    <canvas id="speedometer" width="200" height="160"></canvas>
-    <canvas id="chart" width="400" height="200"></canvas>
-  </div>
+  <section class="sim-card card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h2>Simulação em Tempo Real</h2>
+      <span style="color:var(--muted);font-weight:600;font-size:13px;">Visualize o carro reagindo à força aplicada.</span>
+    </div>
+    <canvas id="simCanvas" width="900" height="320"></canvas>
+    <div class="ground"></div>
+  </section>
 
-  <!-- FUNDAMENTO TEÓRICO -->
-  <div class="formula-box">
-    <h2>📘 Fundamento Teórico</h2>
-
-    <p>A 2ª Lei de Newton relaciona força, massa e aceleração:</p>
+  <section class="theory card">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <h2>📘 Fundamento Teórico</h2>
+      <span class="badge">Lei de Newton</span>
+    </div>
+    <p>Na Segunda Lei de Newton, a resultante das forças produz uma aceleração proporcional à massa: quanto maior a força, maior a aceleração; quanto maior a massa, menor a aceleração. O atrito reduz a força efetiva.</p>
     <div class="formula">F = m · a</div>
-
-    <p><strong>Parâmetros (editáveis):</strong></p>
-
-    <div class="formula-input">
-      <div>
-        <label>Massa (kg)</label>
-        <input type="number" id="massBox" step="0.1">
+    <div class="inputs-grid">
+      <div class="field">
+        <label for="massInput">Massa (kg)</label>
+        <input type="number" id="massInput" min="50" max="5000" step="10" value="1000">
       </div>
-      <div>
-        <label>Força (N)</label>
-        <input type="number" id="forceBox" step="0.1">
+      <div class="field">
+        <label for="forceInput">Força aplicada (N)</label>
+        <input type="number" id="forceInput" min="0" max="5000" step="10" value="1500">
       </div>
-      <div>
-        <label>Atrito (μ)</label>
-        <input type="number" id="frictionBox" step="0.05">
+      <div class="field">
+        <label for="frictionInput">Atrito (μ)</label>
+        <input type="number" id="frictionInput" min="0" max="1" step="0.01" value="0.2">
+      </div>
+      <div class="field">
+        <label>Gravidade (g)</label>
+        <input type="text" value="9,8 m/s²" readonly>
       </div>
     </div>
+    <div class="results">
+      <div class="metric-card">
+        <strong>Força resultante (N)</strong>
+        <div class="big" id="netForceText">0</div>
+      </div>
+      <div class="metric-card">
+        <strong>Aceleração (m/s²)</strong>
+        <div class="big" id="accText">0</div>
+      </div>
+    </div>
+    <div class="metric-card" style="margin-top:6px;">
+      <strong>Substituição numérica</strong>
+      <div class="big" id="subText">F = m · a</div>
+      <div style="color:var(--muted);font-size:13px;">Força líquida = Massa × Aceleração</div>
+    </div>
+  </section>
 
-    <p style="margin-top:14px;">
-      Força Resultante = <strong><span id="fResult">0</span> N</strong><br>
-      <strong>a = F / m = <span id="formulaCalc">0</span> m/s²</strong>
-    </p>
+  <section class="footer">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Aceleração</div>
+        <div class="stat-value" id="accCard">0 m/s²</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Velocidade</div>
+        <div class="stat-value" id="velCard">0 m/s</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Força resultante</div>
+        <div class="stat-value" id="netCard">0 N</div>
+      </div>
+    </div>
+    <div class="gauge">
+      <h3 style="margin:0 0 8px 0;">Velocímetro</h3>
+      <canvas id="gaugeCanvas" width="260" height="180"></canvas>
+    </div>
+    <div class="chart">
+      <h3 style="margin:0 0 8px 0;">Velocidade × Tempo</h3>
+      <canvas id="chartCanvas" width="400" height="180"></canvas>
+    </div>
+    <div class="challenge">
+      <strong>Desafio:</strong>
+      <span>Alcance 10 m/s</span>
+      <div class="progress"><span id="challengeBar"></span></div>
+      <span id="challengeStatus" style="font-weight:800;">Em andamento</span>
+    </div>
+  </section>
 
-    <small>
-      Ajuste os valores e observe como a aceleração varia.
-      Se a força resultante for nula, não há aceleração.
-    </small>
-  </div>
+  <script>
+    const state = {
+      mass: 1000,
+      force: 1500,
+      friction: 0.2,
+      g: 9.8,
+      position: 0,
+      velocity: 0,
+      acceleration: 0,
+      netForce: 0,
+      running: false,
+      lastTime: null,
+      time: 0,
+      history: []
+    };
 
-</div>
-</div>
+    const simCanvas = document.getElementById('simCanvas');
+    const simCtx = simCanvas.getContext('2d');
+    const gaugeCanvas = document.getElementById('gaugeCanvas');
+    const gaugeCtx = gaugeCanvas.getContext('2d');
+    const chartCanvas = document.getElementById('chartCanvas');
+    const chartCtx = chartCanvas.getContext('2d');
 
-<script>
-const canvas=document.getElementById("scene");
-const ctx=canvas.getContext("2d");
-const speedCtx=document.getElementById("speedometer").getContext("2d");
-const chartCtx=document.getElementById("chart").getContext("2d");
+    const massSlider = document.getElementById('massSlider');
+    const forceSlider = document.getElementById('forceSlider');
+    const frictionSlider = document.getElementById('frictionSlider');
+    const massValue = document.getElementById('massValue');
+    const forceValue = document.getElementById('forceValue');
+    const frictionValue = document.getElementById('frictionValue');
+    const massInput = document.getElementById('massInput');
+    const forceInput = document.getElementById('forceInput');
+    const frictionInput = document.getElementById('frictionInput');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const netForceText = document.getElementById('netForceText');
+    const accText = document.getElementById('accText');
+    const accCard = document.getElementById('accCard');
+    const velCard = document.getElementById('velCard');
+    const netCard = document.getElementById('netCard');
+    const challengeBar = document.getElementById('challengeBar');
+    const challengeStatus = document.getElementById('challengeStatus');
 
-let x=50,velocity=0,running=false,wheel=0,time=0,history=[];
-const g=9.8,targetSpeed=10;
+    function syncDisplays() {
+      computeDerived();
+      massValue.textContent = state.mass.toFixed(0);
+      forceValue.textContent = state.force.toFixed(0);
+      frictionValue.textContent = state.friction.toFixed(2);
+      massInput.value = state.mass;
+      forceInput.value = state.force;
+      frictionInput.value = state.friction.toFixed(2);
+      massSlider.value = state.mass;
+      forceSlider.value = state.force;
+      frictionSlider.value = state.friction;
+      netForceText.textContent = state.netForce.toFixed(1);
+      accText.textContent = state.acceleration.toFixed(2);
+      accCard.textContent = state.acceleration.toFixed(2) + ' m/s²';
+      velCard.textContent = state.velocity.toFixed(2) + ' m/s';
+      netCard.textContent = state.netForce.toFixed(1) + ' N';
+      const progress = Math.min(state.velocity / 10, 1) * 100;
+      challengeBar.style.width = progress + '%';
+      challengeStatus.textContent = state.velocity >= 10 ? 'Concluído!' : 'Em andamento';
+      const substitution = `${state.netForce.toFixed(1)} N = ${state.mass.toFixed(0)} kg · ${state.acceleration.toFixed(2)} m/s²`;
+      document.getElementById('subText').textContent = substitution;
+    }
 
-const mass=document.getElementById("mass");
-const force=document.getElementById("force");
-const friction=document.getElementById("friction");
+    function computeDerived() {
+      const frictionForce = state.friction * state.mass * state.g;
+      state.netForce = Math.max(state.force - frictionForce, 0);
+      state.acceleration = state.netForce / state.mass;
+    }
 
-const massBox=document.getElementById("massBox");
-const forceBox=document.getElementById("forceBox");
-const frictionBox=document.getElementById("frictionBox");
+    function updatePhysics(dt) {
+      const cappedDt = Math.min(dt, 0.05);
+      computeDerived();
+      state.velocity += state.acceleration * cappedDt;
+      state.position += state.velocity * cappedDt + 0.5 * state.acceleration * cappedDt * cappedDt;
+      state.time += cappedDt;
+      state.history.push({ t: state.time, v: state.velocity });
+      if (state.history.length > 200) state.history.shift();
+    }
 
-function sync(from){
-  if(from!=="slider"){
-    mass.value=massBox.value;
-    force.value=forceBox.value;
-    friction.value=frictionBox.value;
-  }
-  if(from!=="box"){
-    massBox.value=mass.value;
-    forceBox.value=force.value;
-    frictionBox.value=friction.value;
-  }
-  massVal.textContent=mass.value;
-  forceVal.textContent=force.value;
-  frictionVal.textContent=friction.value;
-}
+    function drawCar() {
+      const ctx = simCtx;
+      const w = simCanvas.width;
+      const h = simCanvas.height;
+      ctx.clearRect(0, 0, w, h);
 
-function drawCar(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#cbd5e1";
-  ctx.fillRect(0,280,canvas.width,4);
+      ctx.fillStyle = '#dfe3eb';
+      ctx.fillRect(0, h - 80, w, 80);
+      ctx.fillStyle = '#c7ccd6';
+      ctx.fillRect(0, h - 20, w, 20);
 
-  ctx.fillStyle="#e85d04";
-  ctx.roundRect(x,240,100,30,8);
-  ctx.fill();
+      const x = (state.position * 10) % (w + 120) - 60;
+      const y = h - 100;
+      const bodyW = 160;
+      const bodyH = 40;
 
-  ctx.fillStyle="#f5b700";
-  ctx.roundRect(x+25,222,40,18,6);
-  ctx.fill();
+      ctx.fillStyle = '#1f2933';
+      ctx.fillRect(x, y, bodyW, bodyH);
+      ctx.fillStyle = '#f7c948';
+      ctx.fillRect(x + 30, y - 22, 80, 22);
+      ctx.fillStyle = '#f08c42';
+      ctx.fillRect(x, y + bodyH - 10, bodyW, 10);
 
-  wheel+=velocity*.1;
-  [25,75].forEach(w=>{
-    ctx.save();
-    ctx.translate(x+w,270);
-    ctx.rotate(wheel);
-    ctx.beginPath();
-    ctx.arc(0,0,10,0,Math.PI*2);
-    ctx.fillStyle="#111";
-    ctx.fill();
-    ctx.restore();
-  });
-}
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(x + 36, y - 18, 28, 14);
+      ctx.fillRect(x + 70, y - 18, 28, 14);
 
-function drawSpeed(v){
-  speedCtx.clearRect(0,0,200,160);
-  speedCtx.beginPath();
-  speedCtx.arc(100,100,70,Math.PI,0);
-  speedCtx.strokeStyle="#d1d5db";
-  speedCtx.lineWidth=8;
-  speedCtx.stroke();
+      const wheelRadius = 18;
+      const wheelY = y + bodyH + 6;
+      const speedFactor = state.velocity * 6;
+      const wheelAngles = [speedFactor, speedFactor];
+      [x + 35, x + 120].forEach((cx, i) => {
+        ctx.save();
+        ctx.translate(cx, wheelY);
+        ctx.rotate(wheelAngles[i]);
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.arc(0, 0, wheelRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f7c948';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, wheelRadius - 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-wheelRadius + 6, 0);
+        ctx.lineTo(wheelRadius - 6, 0);
+        ctx.moveTo(0, -wheelRadius + 6);
+        ctx.lineTo(0, wheelRadius - 6);
+        ctx.stroke();
+        ctx.restore();
+      });
 
-  const a=Math.PI+Math.min(v,30)/30*Math.PI;
-  speedCtx.beginPath();
-  speedCtx.moveTo(100,100);
-  speedCtx.lineTo(100+60*Math.cos(a),100+60*Math.sin(a));
-  speedCtx.strokeStyle="#e85d04";
-  speedCtx.lineWidth=4;
-  speedCtx.stroke();
+      ctx.strokeStyle = 'rgba(240,140,66,0.8)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(30, h - 120);
+      ctx.lineTo(120, h - 120);
+      ctx.stroke();
+      ctx.fillStyle = '#f08c42';
+      ctx.beginPath();
+      ctx.moveTo(120, h - 126);
+      ctx.lineTo(134, h - 120);
+      ctx.lineTo(120, h - 114);
+      ctx.closePath();
+      ctx.fill();
+    }
 
-  speedCtx.fillText(v.toFixed(1)+" m/s",70,145);
-}
+    function drawGauge() {
+      const ctx = gaugeCtx;
+      const w = gaugeCanvas.width;
+      const h = gaugeCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h - 10;
+      const r = Math.min(w, h * 1.2) / 2 - 10;
 
-function drawChart(){
-  chartCtx.clearRect(0,0,400,200);
-  chartCtx.beginPath();
-  chartCtx.strokeStyle="#f5b700";
-  history.forEach((p,i)=>{
-    const x=i*4,y=200-p.v*6;
-    i?chartCtx.lineTo(x,y):chartCtx.moveTo(x,y);
-  });
-  chartCtx.stroke();
-}
+      ctx.lineWidth = 12;
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+      ctx.stroke();
 
-function step(){
-  if(!running)return;
-  const m=+mass.value,F=+force.value,mu=+friction.value;
-  const fr=mu*m*g;
-  const net=Math.max(F-fr,0);
-  const acc=net/m;
+      const start = Math.PI;
+      const end = Math.PI + (state.velocity / 20) * Math.PI;
+      ctx.strokeStyle = 'rgba(240,140,66,0.8)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, start, Math.min(end, 2 * Math.PI));
+      ctx.stroke();
 
-  velocity+=acc*.1;
-  x+=velocity;
-  history.push({v:velocity});
-  if(history.length>100)history.shift();
+      const needle = start + Math.min(state.velocity / 20, 1) * Math.PI;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(needle - Math.PI);
+      ctx.fillStyle = '#1f2933';
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.lineTo(r - 6, 0);
+      ctx.lineTo(r - 16, -6);
+      ctx.lineTo(-6, 0);
+      ctx.fill();
+      ctx.restore();
 
-  acc.textContent=acc.toFixed(2);
-  vel.textContent=velocity.toFixed(2);
-  net.textContent=net.toFixed(2);
-  fResult.textContent=net.toFixed(2);
-  formulaCalc.textContent=acc.toFixed(2);
+      ctx.fillStyle = '#1f2933';
+      ctx.font = '16px Segoe UI';
+      ctx.fillText('0', cx - r + 6, cy - 6);
+      ctx.fillText('20 m/s', cx + r - 70, cy - 6);
+      ctx.fillText('Velocidade', cx - 42, 22);
+      ctx.font = '22px Segoe UI';
+      ctx.fillText(state.velocity.toFixed(2) + ' m/s', cx - 64, 50);
+    }
 
-  drawCar();drawSpeed(velocity);drawChart();
-  if(velocity>=targetSpeed){status.textContent="Concluído";running=false;}
-  requestAnimationFrame(step);
-}
+    function drawChart() {
+      const ctx = chartCtx;
+      const w = chartCanvas.width;
+      const h = chartCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const padding = 30;
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, h - padding);
+      ctx.lineTo(w - padding, h - padding);
+      ctx.stroke();
 
-[start,reset].forEach(b=>b.onclick=null);
-start.onclick=()=>{running=true;step();}
-reset.onclick=()=>{running=false;x=50;velocity=0;history=[];drawCar();drawSpeed(0);drawChart();}
+      if (state.history.length < 2) return;
+      const times = state.history.map(p => p.t);
+      const velocities = state.history.map(p => p.v);
+      const tMin = Math.min(...times);
+      const tMax = Math.max(...times);
+      const vMax = Math.max(5, ...velocities);
+      ctx.strokeStyle = '#f08c42';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      state.history.forEach((p, i) => {
+        const x = padding + ((p.t - tMin) / (tMax - tMin || 1)) * (w - 2 * padding);
+        const y = h - padding - (p.v / vMax) * (h - 2 * padding);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
 
-[mass,force,friction].forEach(i=>i.oninput=()=>sync("slider"));
-[massBox,forceBox,frictionBox].forEach(i=>i.oninput=()=>sync("box"));
+      ctx.fillStyle = '#52616b';
+      ctx.font = '12px Segoe UI';
+      ctx.fillText('t (s)', w - padding + 6, h - padding + 4);
+      ctx.fillText('v (m/s)', padding - 6, padding - 8);
+    }
 
-sync();
-drawCar();
-</script>
+    function update() {
+      const now = performance.now();
+      if (state.lastTime === null) state.lastTime = now;
+      const dt = (now - state.lastTime) / 1000;
+      state.lastTime = now;
+      if (state.running) updatePhysics(dt);
+      syncDisplays();
+      drawCar();
+      drawGauge();
+      drawChart();
+      requestAnimationFrame(update);
+    }
 
+    function reset() {
+      state.position = 0;
+      state.velocity = 0;
+      state.acceleration = 0;
+      state.netForce = 0;
+      state.running = false;
+      state.lastTime = null;
+      state.time = 0;
+      state.history = [];
+      startBtn.textContent = 'Iniciar';
+    }
+
+    massSlider.addEventListener('input', () => {
+      state.mass = parseFloat(massSlider.value);
+      massInput.value = state.mass;
+      syncDisplays();
+    });
+    forceSlider.addEventListener('input', () => {
+      state.force = parseFloat(forceSlider.value);
+      forceInput.value = state.force;
+      syncDisplays();
+    });
+    frictionSlider.addEventListener('input', () => {
+      state.friction = parseFloat(frictionSlider.value);
+      frictionInput.value = state.friction.toFixed(2);
+      syncDisplays();
+    });
+    massInput.addEventListener('change', () => {
+      const val = parseFloat(massInput.value);
+      if (!isNaN(val)) state.mass = Math.min(5000, Math.max(50, val));
+      massSlider.value = state.mass;
+      syncDisplays();
+    });
+    forceInput.addEventListener('change', () => {
+      const val = parseFloat(forceInput.value);
+      if (!isNaN(val)) state.force = Math.min(5000, Math.max(0, val));
+      forceSlider.value = state.force;
+      syncDisplays();
+    });
+    frictionInput.addEventListener('change', () => {
+      const val = parseFloat(frictionInput.value);
+      if (!isNaN(val)) state.friction = Math.min(1, Math.max(0, val));
+      frictionSlider.value = state.friction;
+      syncDisplays();
+    });
+
+    startBtn.addEventListener('click', () => {
+      state.running = !state.running;
+      startBtn.textContent = state.running ? 'Pausar' : 'Retomar';
+      state.lastTime = null;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      reset();
+      syncDisplays();
+    });
+
+    reset();
+    syncDisplays();
+    requestAnimationFrame(update);
+  </script>
 </body>
 </html>
