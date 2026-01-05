@@ -411,14 +411,20 @@
     const challengeBar = document.getElementById('challengeBar');
     const challengeStatus = document.getElementById('challengeStatus');
 
+    function setRunning(active) {
+      state.running = active;
+      startBtn.textContent = active ? 'Pausar' : 'Retomar';
+      state.lastTime = null;
+    }
+
     function syncDisplays() {
       computeDerived();
       massValue.textContent = state.mass.toFixed(0);
       forceValue.textContent = state.force.toFixed(0);
       frictionValue.textContent = state.friction.toFixed(2);
-      massInput.value = state.mass;
-      forceInput.value = state.force;
-      frictionInput.value = state.friction.toFixed(2);
+      if (document.activeElement !== massInput) massInput.value = state.mass;
+      if (document.activeElement !== forceInput) forceInput.value = state.force;
+      if (document.activeElement !== frictionInput) frictionInput.value = state.friction.toFixed(2);
       massSlider.value = state.mass;
       forceSlider.value = state.force;
       frictionSlider.value = state.friction;
@@ -640,29 +646,36 @@
       frictionInput.value = state.friction.toFixed(2);
       syncDisplays();
     });
-    massInput.addEventListener('change', () => {
+    massInput.addEventListener('input', () => {
       const val = parseFloat(massInput.value);
-      if (!isNaN(val)) state.mass = Math.min(5000, Math.max(50, val));
-      massSlider.value = state.mass;
-      syncDisplays();
+      if (!isNaN(val)) {
+        state.mass = Math.min(5000, Math.max(50, val));
+        massSlider.value = state.mass;
+        setRunning(true);
+        syncDisplays();
+      }
     });
-    forceInput.addEventListener('change', () => {
+    forceInput.addEventListener('input', () => {
       const val = parseFloat(forceInput.value);
-      if (!isNaN(val)) state.force = Math.min(5000, Math.max(0, val));
-      forceSlider.value = state.force;
-      syncDisplays();
+      if (!isNaN(val)) {
+        state.force = Math.min(5000, Math.max(0, val));
+        forceSlider.value = state.force;
+        setRunning(true);
+        syncDisplays();
+      }
     });
-    frictionInput.addEventListener('change', () => {
+    frictionInput.addEventListener('input', () => {
       const val = parseFloat(frictionInput.value);
-      if (!isNaN(val)) state.friction = Math.min(1, Math.max(0, val));
-      frictionSlider.value = state.friction;
-      syncDisplays();
+      if (!isNaN(val)) {
+        state.friction = Math.min(1, Math.max(0, val));
+        frictionSlider.value = state.friction;
+        setRunning(true);
+        syncDisplays();
+      }
     });
 
     startBtn.addEventListener('click', () => {
-      state.running = !state.running;
-      startBtn.textContent = state.running ? 'Pausar' : 'Retomar';
-      state.lastTime = null;
+      setRunning(!state.running);
     });
 
     resetBtn.addEventListener('click', () => {
