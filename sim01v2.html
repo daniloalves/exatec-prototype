@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Exatec • Simulador Educacional</title>
+
+<style>
+:root{
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --primary:#f5b700;
+  --accent:#e85d04;
+  --dark:#1f2937;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--dark);
+  padding:24px;
+}
+
+/* ===== LAYOUT ===== */
+.app{
+  max-width:1400px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:24px;
+}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 15px 35px rgba(0,0,0,.08);
+}
+
+/* ===== CONTROLES ===== */
+h1{margin:0 0 6px;font-size:22px}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:16px}
+
+label{
+  font-size:13px;
+  margin-top:12px;
+  display:block;
+}
+
+input[type=range],input[type=number]{
+  width:100%;
+}
+
+.value{
+  color:var(--accent);
+  font-weight:600;
+}
+
+button{
+  margin-top:14px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+
+button.secondary{
+  background:#d1d5db;
+  color:#111;
+}
+
+/* ===== MAIN ===== */
+.main{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  grid-template-rows:auto 1fr;
+  gap:20px;
+}
+
+/* ===== CANVAS ===== */
+canvas{
+  width:100%;
+  border-radius:14px;
+}
+
+/* ===== METRICS ===== */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-top:12px;
+}
+
+.metric{
+  background:#f9fafb;
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+  font-size:13px;
+}
+
+.metric strong{
+  display:block;
+  color:var(--primary);
+  font-size:16px;
+}
+
+/* ===== PEDAGOGICAL BOX ===== */
+.formula-box{
+  background:linear-gradient(180deg,#ffffff,#f9fafb);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.formula{
+  font-size:22px;
+  font-weight:700;
+  text-align:center;
+  margin:14px 0;
+  color:var(--accent);
+}
+
+.formula-box p{
+  font-size:14px;
+  color:var(--muted);
+}
+
+.formula-input{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.formula-input label{
+  font-size:12px;
+}
+
+small{
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- ===== CONTROLES ===== -->
+<div class="card">
+  <h1>Lei de Newton</h1>
+  <p class="subtitle">Simulação com abordagem pedagógica</p>
+
+  <label>Massa (kg): <span class="value" id="massVal">5</span></label>
+  <input type="range" min="1" max="20" value="5" id="mass">
+
+  <label>Força Aplicada (N): <span class="value" id="forceVal">20</span></label>
+  <input type="range" min="0" max="50" value="20" id="force">
+
+  <label>Atrito (μ): <span class="value" id="frictionVal">0.2</span></label>
+  <input type="range" min="0" max="1" step="0.05" value="0.2" id="friction">
+
+  <button id="start">Iniciar</button>
+  <button class="secondary" id="reset">Resetar</button>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- SIMULADOR -->
+  <div class="card">
+    <canvas id="scene" width="820" height="360"></canvas>
+
+    <div class="metrics">
+      <div class="metric"><strong id="acc">0</strong>Aceleração</div>
+      <div class="metric"><strong id="vel">0</strong>Velocidade</div>
+      <div class="metric"><strong id="net">0</strong>Força Result.</div>
+      <div class="metric">🎯 <strong id="status">10 m/s</strong>Desafio</div>
+    </div>
+
+    <canvas id="speedometer" width="200" height="160"></canvas>
+    <canvas id="chart" width="400" height="200"></canvas>
+  </div>
+
+  <!-- FUNDAMENTO TEÓRICO -->
+  <div class="formula-box">
+    <h2>📘 Fundamento Teórico</h2>
+
+    <p>A 2ª Lei de Newton relaciona força, massa e aceleração:</p>
+    <div class="formula">F = m · a</div>
+
+    <p><strong>Parâmetros (editáveis):</strong></p>
+
+    <div class="formula-input">
+      <div>
+        <label>Massa (kg)</label>
+        <input type="number" id="massBox" step="0.1">
+      </div>
+      <div>
+        <label>Força (N)</label>
+        <input type="number" id="forceBox" step="0.1">
+      </div>
+      <div>
+        <label>Atrito (μ)</label>
+        <input type="number" id="frictionBox" step="0.05">
+      </div>
+    </div>
+
+    <p style="margin-top:14px;">
+      Força Resultante = <strong><span id="fResult">0</span> N</strong><br>
+      <strong>a = F / m = <span id="formulaCalc">0</span> m/s²</strong>
+    </p>
+
+    <small>
+      Ajuste os valores e observe como a aceleração varia.
+      Se a força resultante for nula, não há aceleração.
+    </small>
+  </div>
+
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("scene");
+const ctx=canvas.getContext("2d");
+const speedCtx=document.getElementById("speedometer").getContext("2d");
+const chartCtx=document.getElementById("chart").getContext("2d");
+
+let x=50,velocity=0,running=false,wheel=0,time=0,history=[];
+const g=9.8,targetSpeed=10;
+
+const mass=document.getElementById("mass");
+const force=document.getElementById("force");
+const friction=document.getElementById("friction");
+
+const massBox=document.getElementById("massBox");
+const forceBox=document.getElementById("forceBox");
+const frictionBox=document.getElementById("frictionBox");
+
+function sync(from){
+  if(from!=="slider"){
+    mass.value=massBox.value;
+    force.value=forceBox.value;
+    friction.value=frictionBox.value;
+  }
+  if(from!=="box"){
+    massBox.value=mass.value;
+    forceBox.value=force.value;
+    frictionBox.value=friction.value;
+  }
+  massVal.textContent=mass.value;
+  forceVal.textContent=force.value;
+  frictionVal.textContent=friction.value;
+}
+
+function drawCar(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#cbd5e1";
+  ctx.fillRect(0,280,canvas.width,4);
+
+  ctx.fillStyle="#e85d04";
+  ctx.roundRect(x,240,100,30,8);
+  ctx.fill();
+
+  ctx.fillStyle="#f5b700";
+  ctx.roundRect(x+25,222,40,18,6);
+  ctx.fill();
+
+  wheel+=velocity*.1;
+  [25,75].forEach(w=>{
+    ctx.save();
+    ctx.translate(x+w,270);
+    ctx.rotate(wheel);
+    ctx.beginPath();
+    ctx.arc(0,0,10,0,Math.PI*2);
+    ctx.fillStyle="#111";
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawSpeed(v){
+  speedCtx.clearRect(0,0,200,160);
+  speedCtx.beginPath();
+  speedCtx.arc(100,100,70,Math.PI,0);
+  speedCtx.strokeStyle="#d1d5db";
+  speedCtx.lineWidth=8;
+  speedCtx.stroke();
+
+  const a=Math.PI+Math.min(v,30)/30*Math.PI;
+  speedCtx.beginPath();
+  speedCtx.moveTo(100,100);
+  speedCtx.lineTo(100+60*Math.cos(a),100+60*Math.sin(a));
+  speedCtx.strokeStyle="#e85d04";
+  speedCtx.lineWidth=4;
+  speedCtx.stroke();
+
+  speedCtx.fillText(v.toFixed(1)+" m/s",70,145);
+}
+
+function drawChart(){
+  chartCtx.clearRect(0,0,400,200);
+  chartCtx.beginPath();
+  chartCtx.strokeStyle="#f5b700";
+  history.forEach((p,i)=>{
+    const x=i*4,y=200-p.v*6;
+    i?chartCtx.lineTo(x,y):chartCtx.moveTo(x,y);
+  });
+  chartCtx.stroke();
+}
+
+function step(){
+  if(!running)return;
+  const m=+mass.value,F=+force.value,mu=+friction.value;
+  const fr=mu*m*g;
+  const net=Math.max(F-fr,0);
+  const acc=net/m;
+
+  velocity+=acc*.1;
+  x+=velocity;
+  history.push({v:velocity});
+  if(history.length>100)history.shift();
+
+  acc.textContent=acc.toFixed(2);
+  vel.textContent=velocity.toFixed(2);
+  net.textContent=net.toFixed(2);
+  fResult.textContent=net.toFixed(2);
+  formulaCalc.textContent=acc.toFixed(2);
+
+  drawCar();drawSpeed(velocity);drawChart();
+  if(velocity>=targetSpeed){status.textContent="Concluído";running=false;}
+  requestAnimationFrame(step);
+}
+
+[start,reset].forEach(b=>b.onclick=null);
+start.onclick=()=>{running=true;step();}
+reset.onclick=()=>{running=false;x=50;velocity=0;history=[];drawCar();drawSpeed(0);drawChart();}
+
+[mass,force,friction].forEach(i=>i.oninput=()=>sync("slider"));
+[massBox,forceBox,frictionBox].forEach(i=>i.oninput=()=>sync("box"));
+
+sync();
+drawCar();
+</script>
+
+</body>
+</html>
