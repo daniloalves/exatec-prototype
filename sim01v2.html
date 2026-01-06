@@ -1,691 +1,928 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exatec - Newton's Second Law Simulator</title>
-  <style>
-    :root {
-      --bg: #f3f4f6;
-      --card: #ffffff;
-      --text: #1f2933;
-      --muted: #52616b;
-      --primary: #f7c948;
-      --secondary: #f08c42;
-      --border: #e5e7eb;
-      --shadow: 0 10px 30px rgba(0,0,0,0.08);
-      --radius: 14px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 320px 1fr 380px;
-      grid-template-rows: 440px auto;
-      gap: 18px;
-      padding: 18px;
-    }
-    h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      border: 1px solid var(--border);
-    }
-    .sidebar {
-      grid-row: 1 / span 2;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .badge {
-      background: rgba(247, 201, 72, 0.18);
-      color: var(--secondary);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-weight: 600;
-      font-size: 12px;
-      width: fit-content;
-    }
-    .control {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
-    }
-    .control label {
-      font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: var(--muted);
-    }
-    .control input[type="range"] {
-      width: 100%;
-      accent-color: var(--secondary);
-    }
-    .control .value {
-      font-weight: 700;
-      color: var(--text);
-    }
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    button {
-      border: none;
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.08s ease, box-shadow 0.12s ease;
-    }
-    button:active { transform: translateY(1px); }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #1f1f1f;
-      box-shadow: 0 8px 18px rgba(240, 140, 66, 0.25);
-    }
-    .btn-ghost {
-      background: #f9fafb;
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-    .sim-card {
-      grid-column: 2;
-      grid-row: 1;
-      position: relative;
-      overflow: hidden;
-    }
-    #simCanvas {
-      width: 100%;
-      height: 320px;
-      background: linear-gradient(180deg, #fdfdfd 0%, #f6f7f9 60%, #e4e7ec 100%);
-      border-radius: var(--radius);
-    }
-    .ground {
-      position: absolute;
-      bottom: 60px;
-      left: 18px;
-      right: 18px;
-      height: 6px;
-      background: linear-gradient(90deg, rgba(240,140,66,0.4), rgba(247,201,72,0.8));
-      border-radius: 999px;
-    }
-    .theory {
-      grid-column: 3;
-      grid-row: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .theory p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 14px;
-    }
-    .formula {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--secondary);
-      letter-spacing: -0.02em;
-    }
-    .inputs-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .field label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .field input {
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #fbfbfb;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      outline: none;
-    }
-    .field input:focus {
-      border-color: var(--secondary);
-      box-shadow: 0 0 0 3px rgba(240, 140, 66, 0.18);
-    }
-    .results {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 4px;
-    }
-    .metric-card {
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      background: #fffdf7;
-    }
-    .metric-card strong { font-size: 14px; color: var(--muted); }
-    .metric-card .big {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--text);
-      margin-top: 6px;
-    }
-    .footer {
-      grid-column: 2 / 4;
-      grid-row: 2;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      align-items: start;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-    .stat-card {
-      background: #fffefc;
-      border-radius: 12px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    }
-    .stat-label { color: var(--muted); font-size: 13px; font-weight: 700; }
-    .stat-value { font-size: 20px; font-weight: 800; margin-top: 6px; }
-    .gauge, .chart {
-      background: var(--card);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      padding: 12px;
-    }
-    canvas { display: block; }
-    .challenge {
-      grid-column: span 3;
-      background: linear-gradient(135deg, rgba(247,201,72,0.8), rgba(240,140,66,0.8));
-      border-radius: var(--radius);
-      padding: 14px;
-      color: #1f1f1f;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(0,0,0,0.04);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    }
-    .challenge .progress {
-      flex: 1;
-      height: 10px;
-      background: rgba(255,255,255,0.4);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .challenge .progress span {
-      display: block;
-      height: 100%;
-      background: #fff;
-      width: 0%;
-      transition: width 0.2s ease;
-    }
-    @media (max-width: 1200px) {
-      body {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-      }
-      .sidebar, .sim-card, .theory, .footer { grid-column: 1; grid-row: auto; }
-      .footer { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: 1fr; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exatec – Simulador da Segunda Lei de Newton</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #34495e;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 0.2fr 0.8fr 0.5fr;
+            grid-template-rows: auto auto;
+            gap: 20px;
+            padding: 20px;
+            /* min-height: calc(100vh - 100px); */
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            /* grid-row: 1 / 3; */
+            /* max-height: 97%; */
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: none;
+        }
+
+        .value-display {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ff8c00;
+            margin-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #2c3e50;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .theory-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .theory-panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .theory-panel p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .formula-box {
+            background: #f8f9fa;
+            border-left: 4px solid #ffd700;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .formula-box h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .formula {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff8c00;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .input-group label {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 80px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .calculation-box {
+            background: #fff8e1;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .calculation-box p {
+            margin: 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .calculation-box .result {
+            color: #ff8c00;
+            font-size: 16px;
+        }
+
+        .canvas-area {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #simulationCanvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%);
+        }
+
+        .bottom-area {
+            grid-column: 1 / 4;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+
+        .metric-card .unit {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-left: 5px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .chart-card h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            color: #2c3e50;
+        }
+
+        .challenge-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .challenge-card p {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .challenge-progress {
+            background: rgba(255,255,255,0.3);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .challenge-progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <aside class="sidebar card">
     <div class="header">
-      <span class="badge">Exatec · Física</span>
-      <h1>Lei de Newton · Força = m · a</h1>
-      <p style="margin:0;color:var(--muted);">Ajuste os parâmetros e observe como força, massa e atrito alteram o movimento.</p>
+        <h1>Exatec – Simulador da Segunda Lei de Newton</h1>
+        <p>Plataforma Educacional de Física para Escolas</p>
     </div>
-    <div class="control">
-      <label>Massa (kg) <span class="value" id="massValue">1000</span></label>
-      <input type="range" id="massSlider" min="50" max="5000" step="10" value="1000">
+
+    <div class="main-container">
+        <!-- Painel de Controles -->
+        <div class="sidebar">
+            <h2>⚙️ Controles</h2>
+            
+            <div class="control-group">
+                <label>Massa (kg)</label>
+                <input type="range" id="massSlider" min="10" max="200" value="50" step="5">
+                <div class="value-display" id="massValue">50 kg</div>
+            </div>
+
+            <div class="control-group">
+                <label>Força Aplicada (N)</label>
+                <input type="range" id="forceSlider" min="0" max="500" value="200" step="10">
+                <div class="value-display" id="forceValue">200 N</div>
+            </div>
+
+            <div class="control-group">
+                <label>Coeficiente de Atrito (μ)</label>
+                <input type="range" id="frictionSlider" min="0" max="1" value="0.2" step="0.05">
+                <div class="value-display" id="frictionValue">0.20</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-start" id="startBtn">▶ Iniciar</button>
+                <button class="btn-reset" id="resetBtn">↻ Resetar</button>
+            </div>
+        </div>
+
+        <!-- Área da Simulação -->
+        <div class="canvas-area">
+            <canvas id="simulationCanvas" width="700" height="400"></canvas>
+        </div>
+
+        <!-- Painel Teórico -->
+        <div class="theory-panel">
+            <h2>📘 Fundamento Teórico</h2>
+            <p>
+                A <strong>Segunda Lei de Newton</strong> estabelece que a aceleração de um corpo é diretamente proporcional à força resultante que atua sobre ele e inversamente proporcional à sua massa.
+            </p>
+
+            <div class="formula-box">
+                <h3>Fórmula Fundamental</h3>
+                <div class="formula">F = m · a</div>
+                <p style="text-align: center; font-size: 12px; color: #7f8c8d;">
+                    Onde:<br>
+                    F = Força (N)<br>
+                    m = massa (kg)<br>
+                    a = aceleração (m/s²)
+                </p>
+            </div>
+
+            <div class="formula-box">
+                <h3>Parâmetros Atuais</h3>
+                
+                <div class="input-group">
+                    <label>Massa (m):</label>
+                    <input type="number" id="massInput" value="50" min="10" max="200" step="5">
+                    <span>kg</span>
+                </div>
+
+                <div class="input-group">
+                    <label>Força Aplicada (F):</label>
+                    <input type="number" id="forceInput" value="200" min="0" max="500" step="10">
+                    <span>N</span>
+                </div>
+
+                <div class="input-group">
+                    <label>Atrito (μ):</label>
+                    <input type="number" id="frictionInput" value="0.2" min="0" max="1" step="0.05">
+                </div>
+
+                <div class="calculation-box">
+                    <p>Força de Atrito: <span class="result" id="frictionForceCalc">98 N</span></p>
+                    <p>Força Resultante: <span class="result" id="resultantForceCalc">102 N</span></p>
+                    <p>Aceleração: <span class="result" id="accelerationCalc">2.04 m/s²</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Métricas -->
+        <div class="bottom-area">
+            <div class="metric-card">
+                <h3>Aceleração</h3>
+                <div>
+                    <span class="value" id="accelMetric">0.00</span>
+                    <span class="unit">m/s²</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <h3>Velocidade</h3>
+                <div>
+                    <span class="value" id="velocityMetric">0.00</span>
+                    <span class="unit">m/s</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <h3>Força Resultante</h3>
+                <div>
+                    <span class="value" id="forceMetric">0.00</span>
+                    <span class="unit">N</span>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Velocímetro</h3>
+                <canvas id="speedometerCanvas" width="200" height="150"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3>Velocidade × Tempo</h3>
+                <canvas id="chartCanvas" width="350" height="150"></canvas>
+            </div>
+
+            <div class="challenge-card">
+                <h3>🎯 Desafio</h3>
+                <p>Alcance 10 m/s com seu veículo!</p>
+                <div class="challenge-progress">
+                    <div class="challenge-progress-bar" id="challengeProgress"></div>
+                </div>
+                <p style="margin-top: 10px; font-weight: 600;" id="challengeStatus">Progresso: 0%</p>
+            </div>
+        </div>
     </div>
-    <div class="control">
-      <label>Força aplicada (N) <span class="value" id="forceValue">1500</span></label>
-      <input type="range" id="forceSlider" min="0" max="5000" step="50" value="1500">
-    </div>
-    <div class="control">
-      <label>Coeficiente de atrito (μ) <span class="value" id="frictionValue">0.20</span></label>
-      <input type="range" id="frictionSlider" min="0" max="1" step="0.01" value="0.2">
-    </div>
-    <div class="buttons">
-      <button class="btn-primary" id="startBtn">Iniciar</button>
-      <button class="btn-ghost" id="resetBtn">Resetar</button>
-    </div>
-  </aside>
 
-  <section class="sim-card card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <h2>Simulação em Tempo Real</h2>
-      <span style="color:var(--muted);font-weight:600;font-size:13px;">Visualize o carro reagindo à força aplicada.</span>
-    </div>
-    <canvas id="simCanvas" width="900" height="320"></canvas>
-    <div class="ground"></div>
-  </section>
+    <script>
+        // ==================== CONSTANTES ====================
+        const g = 9.8; // Aceleração da gravidade (m/s²)
+        
+        // ==================== ESTADO DA SIMULAÇÃO ====================
+        let state = {
+            mass: 50,           // kg
+            appliedForce: 200,  // N
+            friction: 0.2,      // μ
+            velocity: 0,        // m/s
+            position: 50,       // pixels
+            acceleration: 0,    // m/s²
+            isRunning: false,
+            time: 0,
+            wheelRotation: 0
+        };
 
-  <section class="theory card">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <h2>📘 Fundamento Teórico</h2>
-      <span class="badge">Lei de Newton</span>
-    </div>
-    <p>Na Segunda Lei de Newton, a resultante das forças produz uma aceleração proporcional à massa: quanto maior a força, maior a aceleração; quanto maior a massa, menor a aceleração. O atrito reduz a força efetiva.</p>
-    <div class="formula">F = m · a</div>
-    <div class="inputs-grid">
-      <div class="field">
-        <label for="massInput">Massa (kg)</label>
-        <input type="number" id="massInput" min="50" max="5000" step="10" value="1000">
-      </div>
-      <div class="field">
-        <label for="forceInput">Força aplicada (N)</label>
-        <input type="number" id="forceInput" min="0" max="5000" step="10" value="1500">
-      </div>
-      <div class="field">
-        <label for="frictionInput">Atrito (μ)</label>
-        <input type="number" id="frictionInput" min="0" max="1" step="0.01" value="0.2">
-      </div>
-      <div class="field">
-        <label>Gravidade (g)</label>
-        <input type="text" value="9,8 m/s²" readonly>
-      </div>
-    </div>
-    <div class="results">
-      <div class="metric-card">
-        <strong>Força resultante (N)</strong>
-        <div class="big" id="netForceText">0</div>
-      </div>
-      <div class="metric-card">
-        <strong>Aceleração (m/s²)</strong>
-        <div class="big" id="accText">0</div>
-      </div>
-    </div>
-    <div class="metric-card" style="margin-top:6px;">
-      <strong>Substituição numérica</strong>
-      <div class="big" id="subText">F = m · a</div>
-      <div style="color:var(--muted);font-size:13px;">Força líquida = Massa × Aceleração</div>
-    </div>
-  </section>
+        // Dados para o gráfico de velocidade
+        let velocityData = [];
+        let timeData = [];
+        const maxDataPoints = 50;
 
-  <section class="footer">
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-label">Aceleração</div>
-        <div class="stat-value" id="accCard">0 m/s²</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Velocidade</div>
-        <div class="stat-value" id="velCard">0 m/s</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Força resultante</div>
-        <div class="stat-value" id="netCard">0 N</div>
-      </div>
-    </div>
-    <div class="gauge">
-      <h3 style="margin:0 0 8px 0;">Velocímetro</h3>
-      <canvas id="gaugeCanvas" width="260" height="180"></canvas>
-    </div>
-    <div class="chart">
-      <h3 style="margin:0 0 8px 0;">Velocidade × Tempo</h3>
-      <canvas id="chartCanvas" width="400" height="180"></canvas>
-    </div>
-    <div class="challenge">
-      <strong>Desafio:</strong>
-      <span>Alcance 10 m/s</span>
-      <div class="progress"><span id="challengeBar"></span></div>
-      <span id="challengeStatus" style="font-weight:800;">Em andamento</span>
-    </div>
-  </section>
+        // ==================== ELEMENTOS DOM ====================
+        const massSlider = document.getElementById('massSlider');
+        const forceSlider = document.getElementById('forceSlider');
+        const frictionSlider = document.getElementById('frictionSlider');
+        const massValue = document.getElementById('massValue');
+        const forceValue = document.getElementById('forceValue');
+        const frictionValue = document.getElementById('frictionValue');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
 
-  <script>
-    const state = {
-      mass: 1000,
-      force: 1500,
-      friction: 0.2,
-      g: 9.8,
-      position: 0,
-      velocity: 0,
-      acceleration: 0,
-      netForce: 0,
-      running: false,
-      lastTime: null,
-      time: 0,
-      history: []
-    };
+        const massInput = document.getElementById('massInput');
+        const forceInput = document.getElementById('forceInput');
+        const frictionInput = document.getElementById('frictionInput');
 
-    const simCanvas = document.getElementById('simCanvas');
-    const simCtx = simCanvas.getContext('2d');
-    const gaugeCanvas = document.getElementById('gaugeCanvas');
-    const gaugeCtx = gaugeCanvas.getContext('2d');
-    const chartCanvas = document.getElementById('chartCanvas');
-    const chartCtx = chartCanvas.getContext('2d');
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const speedometerCanvas = document.getElementById('speedometerCanvas');
+        const speedometerCtx = speedometerCanvas.getContext('2d');
+        const chartCanvas = document.getElementById('chartCanvas');
+        const chartCtx = chartCanvas.getContext('2d');
 
-    const massSlider = document.getElementById('massSlider');
-    const forceSlider = document.getElementById('forceSlider');
-    const frictionSlider = document.getElementById('frictionSlider');
-    const massValue = document.getElementById('massValue');
-    const forceValue = document.getElementById('forceValue');
-    const frictionValue = document.getElementById('frictionValue');
-    const massInput = document.getElementById('massInput');
-    const forceInput = document.getElementById('forceInput');
-    const frictionInput = document.getElementById('frictionInput');
-    const startBtn = document.getElementById('startBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const netForceText = document.getElementById('netForceText');
-    const accText = document.getElementById('accText');
-    const accCard = document.getElementById('accCard');
-    const velCard = document.getElementById('velCard');
-    const netCard = document.getElementById('netCard');
-    const challengeBar = document.getElementById('challengeBar');
-    const challengeStatus = document.getElementById('challengeStatus');
+        // ==================== FUNÇÕES DE FÍSICA ====================
+        function calculatePhysics() {
+            // Força de atrito = μ · m · g
+            const frictionForce = state.friction * state.mass * g;
+            
+            // Força resultante = Força aplicada - Força de atrito
+            const resultantForce = Math.max(state.appliedForce - frictionForce, 0);
+            
+            // Aceleração = Força resultante / Massa
+            state.acceleration = resultantForce / state.mass;
+            
+            return {
+                frictionForce: frictionForce,
+                resultantForce: resultantForce,
+                acceleration: state.acceleration
+            };
+        }
 
-    function setRunning(active) {
-      state.running = active;
-      startBtn.textContent = active ? 'Pausar' : 'Retomar';
-      state.lastTime = null;
-    }
+        function updateCalculations() {
+            const calc = calculatePhysics();
+            
+            document.getElementById('frictionForceCalc').textContent = calc.frictionForce.toFixed(2) + ' N';
+            document.getElementById('resultantForceCalc').textContent = calc.resultantForce.toFixed(2) + ' N';
+            document.getElementById('accelerationCalc').textContent = calc.acceleration.toFixed(2) + ' m/s²';
+            
+            document.getElementById('accelMetric').textContent = calc.acceleration.toFixed(2);
+            document.getElementById('velocityMetric').textContent = state.velocity.toFixed(2);
+            document.getElementById('forceMetric').textContent = calc.resultantForce.toFixed(2);
+        }
 
-    function syncDisplays() {
-      computeDerived();
-      massValue.textContent = state.mass.toFixed(0);
-      forceValue.textContent = state.force.toFixed(0);
-      frictionValue.textContent = state.friction.toFixed(2);
-      if (document.activeElement !== massInput) massInput.value = state.mass;
-      if (document.activeElement !== forceInput) forceInput.value = state.force;
-      if (document.activeElement !== frictionInput) frictionInput.value = state.friction.toFixed(2);
-      massSlider.value = state.mass;
-      forceSlider.value = state.force;
-      frictionSlider.value = state.friction;
-      netForceText.textContent = state.netForce.toFixed(1);
-      accText.textContent = state.acceleration.toFixed(2);
-      accCard.textContent = state.acceleration.toFixed(2) + ' m/s²';
-      velCard.textContent = state.velocity.toFixed(2) + ' m/s';
-      netCard.textContent = state.netForce.toFixed(1) + ' N';
-      const progress = Math.min(state.velocity / 10, 1) * 100;
-      challengeBar.style.width = progress + '%';
-      challengeStatus.textContent = state.velocity >= 10 ? 'Concluído!' : 'Em andamento';
-      const substitution = `${state.netForce.toFixed(1)} N = ${state.mass.toFixed(0)} kg · ${state.acceleration.toFixed(2)} m/s²`;
-      document.getElementById('subText').textContent = substitution;
-    }
+        // ==================== SINCRONIZAÇÃO DE CONTROLES ====================
+        massSlider.addEventListener('input', (e) => {
+            state.mass = parseFloat(e.target.value);
+            massValue.textContent = state.mass + ' kg';
+            massInput.value = state.mass;
+            updateCalculations();
+        });
 
-    function computeDerived() {
-      const frictionForce = state.friction * state.mass * state.g;
-      state.netForce = Math.max(state.force - frictionForce, 0);
-      state.acceleration = state.netForce / state.mass;
-    }
+        forceSlider.addEventListener('input', (e) => {
+            state.appliedForce = parseFloat(e.target.value);
+            forceValue.textContent = state.appliedForce + ' N';
+            forceInput.value = state.appliedForce;
+            updateCalculations();
+        });
 
-    function updatePhysics(dt) {
-      const cappedDt = Math.min(dt, 0.05);
-      computeDerived();
-      state.velocity += state.acceleration * cappedDt;
-      state.position += state.velocity * cappedDt + 0.5 * state.acceleration * cappedDt * cappedDt;
-      state.time += cappedDt;
-      state.history.push({ t: state.time, v: state.velocity });
-      if (state.history.length > 200) state.history.shift();
-    }
+        frictionSlider.addEventListener('input', (e) => {
+            state.friction = parseFloat(e.target.value);
+            frictionValue.textContent = state.friction.toFixed(2);
+            frictionInput.value = state.friction;
+            updateCalculations();
+        });
 
-    function drawCar() {
-      const ctx = simCtx;
-      const w = simCanvas.width;
-      const h = simCanvas.height;
-      ctx.clearRect(0, 0, w, h);
+        massInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val) && val >= 10 && val <= 200) {
+                state.mass = val;
+                massSlider.value = val;
+                massValue.textContent = val + ' kg';
+                updateCalculations();
+            }
+        });
 
-      ctx.fillStyle = '#dfe3eb';
-      ctx.fillRect(0, h - 80, w, 80);
-      ctx.fillStyle = '#c7ccd6';
-      ctx.fillRect(0, h - 20, w, 20);
+        forceInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val) && val >= 0 && val <= 500) {
+                state.appliedForce = val;
+                forceSlider.value = val;
+                forceValue.textContent = val + ' N';
+                updateCalculations();
+            }
+        });
 
-      const x = (state.position * 10) % (w + 120) - 60;
-      const y = h - 100;
-      const bodyW = 160;
-      const bodyH = 40;
+        frictionInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val) && val >= 0 && val <= 1) {
+                state.friction = val;
+                frictionSlider.value = val;
+                frictionValue.textContent = val.toFixed(2);
+                updateCalculations();
+            }
+        });
 
-      ctx.fillStyle = '#1f2933';
-      ctx.fillRect(x, y, bodyW, bodyH);
-      ctx.fillStyle = '#f7c948';
-      ctx.fillRect(x + 30, y - 22, 80, 22);
-      ctx.fillStyle = '#f08c42';
-      ctx.fillRect(x, y + bodyH - 10, bodyW, 10);
+        // ==================== CONTROLES DE SIMULAÇÃO ====================
+        startBtn.addEventListener('click', () => {
+            state.isRunning = !state.isRunning;
+            startBtn.textContent = state.isRunning ? '⏸ Pausar' : '▶ Iniciar';
+        });
 
-      ctx.fillStyle = '#e5e7eb';
-      ctx.fillRect(x + 36, y - 18, 28, 14);
-      ctx.fillRect(x + 70, y - 18, 28, 14);
+        resetBtn.addEventListener('click', () => {
+            state.velocity = 0;
+            state.position = 50;
+            state.time = 0;
+            state.isRunning = false;
+            state.wheelRotation = 0;
+            startBtn.textContent = '▶ Iniciar';
+            velocityData = [];
+            timeData = [];
+            updateCalculations();
+            updateChallenge();
+        });
 
-      const wheelRadius = 18;
-      const wheelY = y + bodyH + 6;
-      const speedFactor = state.velocity * 6;
-      const wheelAngles = [speedFactor, speedFactor];
-      [x + 35, x + 120].forEach((cx, i) => {
-        ctx.save();
-        ctx.translate(cx, wheelY);
-        ctx.rotate(wheelAngles[i]);
-        ctx.fillStyle = '#111';
-        ctx.beginPath();
-        ctx.arc(0, 0, wheelRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#f7c948';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(0, 0, wheelRadius - 6, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(-wheelRadius + 6, 0);
-        ctx.lineTo(wheelRadius - 6, 0);
-        ctx.moveTo(0, -wheelRadius + 6);
-        ctx.lineTo(0, wheelRadius - 6);
-        ctx.stroke();
-        ctx.restore();
-      });
+        // ==================== DESENHO DO CARRO ====================
+        function drawCar(x, y) {
+            const carWidth = 80;
+            const carHeight = 40;
+            
+            // Sombra
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.ellipse(x + carWidth/2, y + carHeight + 5, carWidth/2, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Corpo do carro
+            ctx.fillStyle = '#ff8c00';
+            ctx.fillRect(x, y, carWidth, carHeight);
+            
+            // Cabine
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x + 15, y - 20, 40, 20);
+            
+            // Janelas
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(x + 18, y - 17, 15, 14);
+            ctx.fillRect(x + 37, y - 17, 15, 14);
+            
+            // Rodas
+            const wheel1X = x + 15;
+            const wheel2X = x + 55;
+            const wheelY = y + carHeight;
+            const wheelRadius = 8;
+            
+            // Roda 1
+            ctx.save();
+            ctx.translate(wheel1X, wheelY);
+            ctx.rotate(state.wheelRotation);
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.arc(0, 0, wheelRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(-2, -wheelRadius, 4, wheelRadius * 2);
+            ctx.fillRect(-wheelRadius, -2, wheelRadius * 2, 4);
+            ctx.restore();
+            
+            // Roda 2
+            ctx.save();
+            ctx.translate(wheel2X, wheelY);
+            ctx.rotate(state.wheelRotation);
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.arc(0, 0, wheelRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(-2, -wheelRadius, 4, wheelRadius * 2);
+            ctx.fillRect(-wheelRadius, -2, wheelRadius * 2, 4);
+            ctx.restore();
+        }
 
-      ctx.strokeStyle = 'rgba(240,140,66,0.8)';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(30, h - 120);
-      ctx.lineTo(120, h - 120);
-      ctx.stroke();
-      ctx.fillStyle = '#f08c42';
-      ctx.beginPath();
-      ctx.moveTo(120, h - 126);
-      ctx.lineTo(134, h - 120);
-      ctx.lineTo(120, h - 114);
-      ctx.closePath();
-      ctx.fill();
-    }
+        // ==================== DESENHO DA CENA ====================
+        function drawScene() {
+            // Limpar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Fundo (céu)
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87ceeb');
+            gradient.addColorStop(1, '#e0f6ff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Chão
+            const groundY = canvas.height - 80;
+            ctx.fillStyle = '#8b7355';
+            ctx.fillRect(0, groundY, canvas.width, 80);
+            
+            // Linha do chão
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+            
+            // Marcas de distância
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, groundY);
+                ctx.lineTo(i, groundY + 10);
+                ctx.stroke();
+            }
+            
+            // Carro
+            const carY = groundY - 48;
+            drawCar(state.position, carY);
+            
+            // Vetor de força
+            if (state.appliedForce > 0) {
+                const forceScale = state.appliedForce / 5;
+                const arrowX = state.position + 80;
+                const arrowY = carY + 20;
+                
+                ctx.strokeStyle = '#e74c3c';
+                ctx.fillStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX + forceScale, arrowY);
+                ctx.stroke();
+                
+                // Ponta da seta
+                ctx.beginPath();
+                ctx.moveTo(arrowX + forceScale, arrowY);
+                ctx.lineTo(arrowX + forceScale - 10, arrowY - 5);
+                ctx.lineTo(arrowX + forceScale - 10, arrowY + 5);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Texto
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('F = ' + state.appliedForce + ' N', arrowX + 10, arrowY - 10);
+            }
+            
+            // Informações na tela
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Tempo: ' + state.time.toFixed(1) + ' s', 10, 25);
+            ctx.fillText('Velocidade: ' + state.velocity.toFixed(2) + ' m/s', 10, 45);
+            ctx.fillText('Posição: ' + ((state.position - 50) / 10).toFixed(1) + ' m', 10, 65);
+        }
 
-    function drawGauge() {
-      const ctx = gaugeCtx;
-      const w = gaugeCanvas.width;
-      const h = gaugeCanvas.height;
-      ctx.clearRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h - 10;
-      const r = Math.min(w, h * 1.2) / 2 - 10;
+        // ==================== VELOCÍMETRO ====================
+        function drawSpeedometer() {
+            const centerX = speedometerCanvas.width / 2;
+            const centerY = speedometerCanvas.height - 20;
+            const radius = 70;
+            
+            speedometerCtx.clearRect(0, 0, speedometerCanvas.width, speedometerCanvas.height);
+            
+            // Arco de fundo
+            speedometerCtx.strokeStyle = '#e0e0e0';
+            speedometerCtx.lineWidth = 15;
+            speedometerCtx.beginPath();
+            speedometerCtx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
+            speedometerCtx.stroke();
+            
+            // Arco colorido
+            const maxSpeed = 20; // m/s
+            const angle = Math.PI + (Math.min(state.velocity, maxSpeed) / maxSpeed) * Math.PI;
+            
+            const gradient = speedometerCtx.createLinearGradient(0, 0, speedometerCanvas.width, 0);
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(1, '#ff8c00');
+            
+            speedometerCtx.strokeStyle = gradient;
+            speedometerCtx.lineWidth = 15;
+            speedometerCtx.beginPath();
+            speedometerCtx.arc(centerX, centerY, radius, Math.PI, angle);
+            speedometerCtx.stroke();
+            
+            // Ponteiro
+            const needleAngle = Math.PI + (Math.min(state.velocity, maxSpeed) / maxSpeed) * Math.PI;
+            const needleLength = radius - 10;
+            
+            speedometerCtx.strokeStyle = '#2c3e50';
+            speedometerCtx.lineWidth = 3;
+            speedometerCtx.beginPath();
+            speedometerCtx.moveTo(centerX, centerY);
+            speedometerCtx.lineTo(
+                centerX + Math.cos(needleAngle) * needleLength,
+                centerY + Math.sin(needleAngle) * needleLength
+            );
+            speedometerCtx.stroke();
+            
+            // Centro
+            speedometerCtx.fillStyle = '#2c3e50';
+            speedometerCtx.beginPath();
+            speedometerCtx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+            speedometerCtx.fill();
+            
+            // Texto
+            speedometerCtx.fillStyle = '#2c3e50';
+            speedometerCtx.font = 'bold 20px Arial';
+            speedometerCtx.textAlign = 'center';
+            speedometerCtx.fillText(state.velocity.toFixed(1), centerX, centerY - 30);
+            speedometerCtx.font = '12px Arial';
+            speedometerCtx.fillText('m/s', centerX, centerY - 10);
+        }
 
-      ctx.lineWidth = 12;
-      ctx.strokeStyle = '#e5e7eb';
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
-      ctx.stroke();
+        // ==================== GRÁFICO DE VELOCIDADE ====================
+        function drawChart() {
+            const padding = 40;
+            const chartWidth = chartCanvas.width - 2 * padding;
+            const chartHeight = chartCanvas.height - 2 * padding;
+            
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            // Eixos
+            chartCtx.strokeStyle = '#2c3e50';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            chartCtx.moveTo(padding, padding);
+            chartCtx.lineTo(padding, padding + chartHeight);
+            chartCtx.lineTo(padding + chartWidth, padding + chartHeight);
+            chartCtx.stroke();
+            
+            // Labels
+            chartCtx.fillStyle = '#2c3e50';
+            chartCtx.font = '10px Arial';
+            chartCtx.textAlign = 'center';
+            chartCtx.fillText('Tempo (s)', chartCanvas.width / 2, chartCanvas.height - 5);
+            chartCtx.save();
+            chartCtx.translate(10, chartCanvas.height / 2);
+            chartCtx.rotate(-Math.PI / 2);
+            chartCtx.fillText('Velocidade (m/s)', 0, 0);
+            chartCtx.restore();
+            
+            // Desenhar dados
+            if (velocityData.length > 1) {
+                const maxVelocity = Math.max(...velocityData, 10);
+                
+                chartCtx.strokeStyle = '#ff8c00';
+                chartCtx.lineWidth = 2;
+                chartCtx.beginPath();
+                
+                for (let i = 0; i < velocityData.length; i++) {
+                    const x = padding + (i / (maxDataPoints - 1)) * chartWidth;
+                    const y = padding + chartHeight - (velocityData[i] / maxVelocity) * chartHeight;
+                    
+                    if (i === 0) {
+                        chartCtx.moveTo(x, y);
+                    } else {
+                        chartCtx.lineTo(x, y);
+                    }
+                }
+                
+                chartCtx.stroke();
+            }
+        }
 
-      const start = Math.PI;
-      const end = Math.PI + (state.velocity / 20) * Math.PI;
-      ctx.strokeStyle = 'rgba(240,140,66,0.8)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, start, Math.min(end, 2 * Math.PI));
-      ctx.stroke();
+        // ==================== DESAFIO ====================
+        function updateChallenge() {
+            const target = 10; // m/s
+            const progress = Math.min((state.velocity / target) * 100, 100);
+            
+            document.getElementById('challengeProgress').style.width = progress + '%';
+            document.getElementById('challengeStatus').textContent = 'Progresso: ' + progress.toFixed(0) + '%';
+            
+            if (progress >= 100) {
+                document.getElementById('challengeStatus').textContent = '✅ Desafio Concluído!';
+            }
+        }
 
-      const needle = start + Math.min(state.velocity / 20, 1) * Math.PI;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(needle - Math.PI);
-      ctx.fillStyle = '#1f2933';
-      ctx.beginPath();
-      ctx.moveTo(-6, 0);
-      ctx.lineTo(r - 6, 0);
-      ctx.lineTo(r - 16, -6);
-      ctx.lineTo(-6, 0);
-      ctx.fill();
-      ctx.restore();
+        // ==================== LOOP DE ANIMAÇÃO ====================
+        let lastTime = Date.now();
+        
+        function animate() {
+            const currentTime = Date.now();
+            const deltaTime = (currentTime - lastTime) / 1000; // segundos
+            lastTime = currentTime;
+            
+            if (state.isRunning) {
+                // Atualizar física
+                calculatePhysics();
+                
+                // Atualizar velocidade: v = v0 + a·t
+                state.velocity += state.acceleration * deltaTime;
+                
+                // Atualizar posição (conversão: 1 m = 10 pixels)
+                state.position += state.velocity * deltaTime * 10;
+                
+                // Atualizar rotação das rodas
+                state.wheelRotation += state.velocity * deltaTime * 0.5;
+                
+                // Resetar posição se sair da tela
+                if (state.position > canvas.width) {
+                    state.position = -80;
+                }
+                
+                // Atualizar tempo
+                state.time += deltaTime;
+                
+                // Armazenar dados para o gráfico
+                velocityData.push(state.velocity);
+                timeData.push(state.time);
+                
+                if (velocityData.length > maxDataPoints) {
+                    velocityData.shift();
+                    timeData.shift();
+                }
+                
+                updateCalculations();
+                updateChallenge();
+            }
+            
+            drawScene();
+            drawSpeedometer();
+            drawChart();
+            
+            requestAnimationFrame(animate);
+        }
 
-      ctx.fillStyle = '#1f2933';
-      ctx.font = '16px Segoe UI';
-      ctx.fillText('0', cx - r + 6, cy - 6);
-      ctx.fillText('20 m/s', cx + r - 70, cy - 6);
-      ctx.fillText('Velocidade', cx - 42, 22);
-      ctx.font = '22px Segoe UI';
-      ctx.fillText(state.velocity.toFixed(2) + ' m/s', cx - 64, 50);
-    }
-
-    function drawChart() {
-      const ctx = chartCtx;
-      const w = chartCanvas.width;
-      const h = chartCanvas.height;
-      ctx.clearRect(0, 0, w, h);
-      const padding = 30;
-      ctx.strokeStyle = '#e5e7eb';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, h - padding);
-      ctx.lineTo(w - padding, h - padding);
-      ctx.stroke();
-
-      if (state.history.length < 2) return;
-      const times = state.history.map(p => p.t);
-      const velocities = state.history.map(p => p.v);
-      const tMin = Math.min(...times);
-      const tMax = Math.max(...times);
-      const vMax = Math.max(5, ...velocities);
-      ctx.strokeStyle = '#f08c42';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      state.history.forEach((p, i) => {
-        const x = padding + ((p.t - tMin) / (tMax - tMin || 1)) * (w - 2 * padding);
-        const y = h - padding - (p.v / vMax) * (h - 2 * padding);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      ctx.fillStyle = '#52616b';
-      ctx.font = '12px Segoe UI';
-      ctx.fillText('t (s)', w - padding + 6, h - padding + 4);
-      ctx.fillText('v (m/s)', padding - 6, padding - 8);
-    }
-
-    function update() {
-      const now = performance.now();
-      if (state.lastTime === null) state.lastTime = now;
-      const dt = (now - state.lastTime) / 1000;
-      state.lastTime = now;
-      if (state.running) updatePhysics(dt);
-      syncDisplays();
-      drawCar();
-      drawGauge();
-      drawChart();
-      requestAnimationFrame(update);
-    }
-
-    function reset() {
-      state.position = 0;
-      state.velocity = 0;
-      state.acceleration = 0;
-      state.netForce = 0;
-      state.running = false;
-      state.lastTime = null;
-      state.time = 0;
-      state.history = [];
-      startBtn.textContent = 'Iniciar';
-    }
-
-    massSlider.addEventListener('input', () => {
-      state.mass = parseFloat(massSlider.value);
-      massInput.value = state.mass;
-      syncDisplays();
-    });
-    forceSlider.addEventListener('input', () => {
-      state.force = parseFloat(forceSlider.value);
-      forceInput.value = state.force;
-      syncDisplays();
-    });
-    frictionSlider.addEventListener('input', () => {
-      state.friction = parseFloat(frictionSlider.value);
-      frictionInput.value = state.friction.toFixed(2);
-      syncDisplays();
-    });
-    massInput.addEventListener('input', () => {
-      const val = parseFloat(massInput.value);
-      if (!isNaN(val)) {
-        state.mass = Math.min(5000, Math.max(50, val));
-        massSlider.value = state.mass;
-        setRunning(true);
-        syncDisplays();
-      }
-    });
-    forceInput.addEventListener('input', () => {
-      const val = parseFloat(forceInput.value);
-      if (!isNaN(val)) {
-        state.force = Math.min(5000, Math.max(0, val));
-        forceSlider.value = state.force;
-        setRunning(true);
-        syncDisplays();
-      }
-    });
-    frictionInput.addEventListener('input', () => {
-      const val = parseFloat(frictionInput.value);
-      if (!isNaN(val)) {
-        state.friction = Math.min(1, Math.max(0, val));
-        frictionSlider.value = state.friction;
-        setRunning(true);
-        syncDisplays();
-      }
-    });
-
-    startBtn.addEventListener('click', () => {
-      setRunning(!state.running);
-    });
-
-    resetBtn.addEventListener('click', () => {
-      reset();
-      syncDisplays();
-    });
-
-    reset();
-    syncDisplays();
-    requestAnimationFrame(update);
-  </script>
+        // ==================== INICIALIZAÇÃO ====================
+        updateCalculations();
+        animate();
+    </script>
 </body>
 </html>
