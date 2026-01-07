@@ -56,7 +56,7 @@
         .nav-container {
             max-width: 1280px;
             margin: 0 auto;
-            padding: 1.2rem 2rem;
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -68,10 +68,8 @@
         }
 
         .logo img {
-            height: 60px;
+            height: 45px;
             width: auto;
-            object-fit: contain;
-            max-width: 250px;
         }
 
         .nav-links {
@@ -149,17 +147,6 @@
             letter-spacing: -1.5px;
         }
 
-        .hero-logo {
-            margin-bottom: 2.5rem;
-        }
-
-        .hero-logo img {
-            height: 140px;
-            width: auto;
-            object-fit: contain;
-            max-width: 400px;
-        }
-
         .hero-content p {
             font-size: 1.25rem;
             color: var(--gray-600);
@@ -217,13 +204,6 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
-        }
-
-        .hero-visual img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
         }
 
         .hero-visual::before {
@@ -480,10 +460,8 @@
         }
 
         .footer-logo img {
-            height: 120px;
+            height: 60px;
             width: auto;
-            object-fit: contain;
-            max-width: 350px;
         }
 
         .footer-text {
@@ -594,7 +572,7 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <div class="logo">
-                <!-- <img src="imgs/logo.png" alt="Exatec Education"> -->
+                <img src="imgs/logo.jpeg" alt="Exatec Education">
             </div>
             <ul class="nav-links">
                 <li><a href="#solucao">Solução</a></li>
@@ -609,9 +587,6 @@
     <section class="hero">
         <div class="hero-container">
             <div class="hero-content animate-in">
-                <div class="hero-logo">
-                    <img src="imgs/logo.png" alt="Exatec Education">
-                </div>
                 <h1>Transformando aulas em experiências imersivas</h1>
                 <p>A Exatec Education é uma plataforma SaaS educacional que utiliza simuladores interativos para tornar o ensino de Física, Química e Matemática mais dinâmico, compreensível e pedagogicamente rico.</p>
                 <div class="hero-buttons">
@@ -620,7 +595,10 @@
                 </div>
             </div>
             <div class="hero-visual">
-                <img src="imgs/sala-aula-atento.jpeg" alt="Simulador interativo de Física com controles em tempo real">
+                <div class="visual-placeholder">
+                    Simulador interativo de Física<br>
+                    com controles em tempo real
+                </div>
             </div>
         </div>
     </section>
